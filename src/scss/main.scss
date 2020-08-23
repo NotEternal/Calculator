@@ -1,0 +1,63 @@
+@import "normalize.scss";
+
+:root {
+    --blue: #007bff;
+    --red: #dc3545;
+    --orange: #fd7e14;
+    --green: #28a745;
+    --white: #fff;
+    --black: #000;
+    --gray: #6c757d;
+    --light: #f8f9fa;
+    --dark: #343a40;
+
+    --breakpoint-xs: 0;
+    --breakpoint-sm: 576px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 992px;
+    --breakpoint-xl: 1200px;
+}
+
+html {
+    font-size: .875em; /* 14px */
+    box-sizing: border-box;
+    font-family: sans-serif;
+    line-height: 1.5;
+
+    --background: var(--light);
+    --text: var(--black);
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background: var(--background);
+    color: var(--text);
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: inherit;
+    outline: none;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+// ::selection {}
+
+// ::-webkit-scrollbar {}
+
+// ::-webkit-scrollbar-track {}
+
+// ::-webkit-scrollbar-thumb {}
+
