@@ -15,11 +15,53 @@
     </header>
 
     <main class="main">
+        <section class="history">
+            <h3>History</h3>
+            <hr>
+            <ul class="history__list"></ul>
+        </section>
 
+        <section class="calculator">
+            <div class="calc">
+                <input type="text" class="calc__input" placeholder="Write your ......">
+                <span class="calc__error" hidden>No correct result</span>
+                <div class="calc__row">
+                    <button>7</button>
+                    <button>8</button>
+                    <button>9</button>
+                    <button>/</button>
+                    <button class="btn-delete">Del</button>
+                    <button class="btn-clear">C</button>
+                </div>
+                <div class="calc__row">
+                    <button>4</button>
+                    <button>5</button>
+                    <button>6</button>
+                    <button>x</button>
+                    <button>(</button>
+                    <button>)</button>
+                </div>
+                <div class="calc__row">
+                    <button>1</button>
+                    <button>2</button>
+                    <button>3</button>
+                    <button>-</button>
+                    <button>x<sup>2</sup></button>
+                    <button>cor</button>
+                </div>
+                <div class="calc__row">
+                    <button>0</button>
+                    <button>.</button>
+                    <button>%</button>
+                    <button>+</button>
+                    <button class="btn-result">=</button>
+                </div>
+            </div>
+        </section>
     </main>
 
     <footer class="footer">
-        <div class="copyright">© 2020</div>
+        <div class="copyright" hidden>© 2020</div>
     </footer>
 
     <script src="js/main.js"></script>

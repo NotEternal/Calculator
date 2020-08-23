@@ -1,15 +1,15 @@
 @import "normalize.scss";
 
 :root {
-    --blue: #007bff;
     --red: #dc3545;
-    --orange: #fd7e14;
-    --green: #28a745;
-    --white: #fff;
-    --black: #000;
-    --gray: #6c757d;
-    --light: #f8f9fa;
-    --dark: #343a40;
+    --blue: rgb(58, 55, 238);
+    --green: rgba(76, 211, 63, 0.726);
+    --black: rgb(0, 0, 0);
+    --light: rgb(248, 249, 250);
+    --gray: rgb(175, 175, 175);
+    --dark: rgb(52, 58, 64);
+    --dark-black: rgb(34, 40, 44);
+    --gradient-orange: linear-gradient(to bottom, var(--dark), var(--black));
 
     --breakpoint-xs: 0;
     --breakpoint-sm: 576px;
@@ -24,13 +24,17 @@ html {
     font-family: sans-serif;
     line-height: 1.5;
 
-    --background: var(--light);
-    --text: var(--black);
+    --background: var(--gradient-orange);
+    --text: var(--light);
 }
 
 body {
+    min-height: 100vh;
     margin: 0;
     padding: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     background: var(--background);
     color: var(--text);
 }
@@ -53,11 +57,118 @@ a {
     color: inherit;
 }
 
-// ::selection {}
+//   HEADER -----------------------
 
-// ::-webkit-scrollbar {}
+.header {
+    text-align: center;
+}
 
-// ::-webkit-scrollbar-track {}
+// MAIN ---------------------------
 
-// ::-webkit-scrollbar-thumb {}
+.main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
+.history {
+    width: 30em;
+    height: 30em;
+    margin-right: 3em;
+    border-radius: 1em;
+    box-shadow: 0 0 1em var(--black);
+    background-color: var(--dark-black);
+
+    h3 {
+        margin: .4em 0;
+        text-align: center;
+    }
+
+    hr {
+        border-color: var(--dark);
+    }
+}
+
+.calculator {
+    width: 35em;
+    height: 30em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1em;
+    box-shadow: 0 0 1em var(--black);
+    background-color: var(--dark-black);
+}
+
+.calc {
+    position: relative;
+    width: 90%;
+    height: 90%;
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 1.4em;
+}
+
+.calc__input {
+    width: 100%;
+    height: 3em;
+    margin-bottom: 1em;
+    padding: 0 1em;
+    border-radius: .3em;
+    border: none;
+    box-shadow: inset 0 0 .6em var(--dark);
+    background-color: var(--gray);
+}
+
+.calc__error {
+    position: absolute;
+    left: 0;
+    top: 3.3em;
+    font-size: .9em;
+    color: var(--red);
+}
+
+.calc__row {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+
+    button {
+        cursor: pointer;
+        width: 3.3em;
+        height: 3.3em;
+        border-radius: .3em;
+        border: none;
+        box-shadow: 0 0 .3em var(--black);
+        background-color: var(--gray);
+        transition: .2s;
+
+        &:hover {
+            background-color: var(--dark);
+            color: var(--light);
+        }
+
+        &:active {
+            box-shadow: 0 0 .1em var(--black);
+        }
+    }
+    
+    .btn-delete {
+        background-color: var(--blue);
+    }
+
+    .btn-clear {
+        background-color: var(--red);
+    }
+    
+    .btn-result {
+        background-color: var(--green);
+        width: 7.15em;
+    }
+}
+
+// FOOTER -------------------------
+
+.footer {
+    text-align: center;
+}
