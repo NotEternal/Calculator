@@ -61,6 +61,8 @@ a {
 
 .header {
   text-align: center;
+  box-shadow: 0 .2em 1em var(--black);
+  background-color: var(--dark-black);
 }
 
 // MAIN ---------------------------
@@ -87,6 +89,10 @@ a {
   hr {
     border-color: var(--dark);
   }
+}
+
+.history__list {
+    margin: 1em 0;
 }
 
 .calculator {
