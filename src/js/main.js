@@ -24,13 +24,16 @@ const calculator = {
   },
 
   getResult() {
-    const arrSimbols = this.input.value.split('');
+    this.result = 0;
 
-    checkCorrectSimbols(arrSimbols);
+    if (this.input.value != '') {
+      const arrSimbols = this.input.value.split('');
 
-    // TODO: разбить массив на отдельные операции по приоритету
-    // TODO: выполнить каждую операцию в зависимости от приоритета
-    // записывать результат каждой операции в result
+      if (checkCorrectSimbols(arrSimbols)) {
+        this.result = expression(arrSimbols);
+      }
+    }
+
     return this.result;
   },
 
@@ -44,10 +47,6 @@ const calculator = {
 };
 
 function checkCorrectSimbols(arrSimb) {
-  console.log(checkErrSimbolsInStartAndEnd(arrSimb));
-  console.log(checkTwoNoDigitSimbols(arrSimb));
-  console.log(checkBrackets(arrSimb));
-
   if (
     checkErrSimbolsInStartAndEnd(arrSimb) &&
     checkTwoNoDigitSimbols(arrSimb) &&
@@ -55,11 +54,13 @@ function checkCorrectSimbols(arrSimb) {
   ) {
     return true;
   }
+
+  return false;
 }
 
 // ! CHANGE NAME FUNCTION
 function checkErrSimbolsInStartAndEnd(arr) {
-  // ! ПОМЕНЯТЬ ЭТУ ДИЧЬ НА НОРМАЛЬНЫЕ СИМВОЛЫ
+  // ! CHANGE SIMBOL OPERATORS
   const arrStartSimbErr = ['%', '*', '/', '-', ')', 'x2'];
   const arrEndSimbErr = ['%', '*', '/', '-', '+', 'cor', '('];
 
@@ -75,9 +76,12 @@ function checkErrSimbolsInStartAndEnd(arr) {
 
 // ! CHANGE NAME FUNCTION
 function checkTwoNoDigitSimbols(arr) {
-  // проверка на идущие подряд не цифровые символы
+  // запрет на идущие подряд операторы
+  // ! CHANGE SIMBOL OPERATORS
+  const arrErrSimbols = ['*', '/', '-', '+', '%', 'cor', 'x2'];
+
   for (let i = 0; i < arr.length - 2; i += 1) {
-    if (Object.is(Number(arr[i]), NaN) && Object.is(Number(arr[i + 1]), NaN)) {
+    if (arrErrSimbols.includes(arr[i]) && arrErrSimbols.includes(arr[i + 1])) {
       return false;
     }
   }
@@ -88,29 +92,43 @@ function checkTwoNoDigitSimbols(arr) {
 function checkBrackets(arr) {
   const arrBrackets = [];
 
-  for (let i = 0; i < arr.length - 1; i += 1) {
+  for (let i = 0; i < arr.length; i += 1) {
     if (arr[i] === '(' || arr[i] === ')') {
       arrBrackets.push(arr[i]);
     }
   }
-
   // не четное кол-во скобок
   if (arrBrackets.length % 2 != 0) {
     return false;
   }
 
-  const arrOpenBrakets = arrBrackets.slice(0, arrBrackets.length / 2 + 1);
+  const arrOpenBrakets = arrBrackets.slice(0, arrBrackets.length / 2);
   const arrCloseBrakets = arrBrackets.slice(
-    arrBrackets.length / 2 + 1,
+    arrBrackets.length / 2,
     arrBrackets.length
   );
-
   // не правильная последовательность скобок
   if (arrOpenBrakets.includes(')') || arrCloseBrakets.includes('(')) {
     return false;
   }
 
   return true;
+}
+// TODO: save work
+function expression(arr) {
+  // * базовый случай, когда в массиве только один элемент
+  if (arr.length === 1) {
+    return arr[0];
+  }
+
+  // * если в массиве есть скобки то вызываем её для скобок
+  // * или вычисляем текущее выражение по приоритету
+  if (arr.includes('(')) {
+    // вычислить скобки
+  } else {
+    // вычислить одну приоритетную операцию
+    // return вычисленная операция + expression(новый массив без операции)
+  }
 }
 
 // EVENTS AND SANDLERS ------------------------------
@@ -171,6 +189,7 @@ function viewResult() {
 
 function checkCorrectCode(key) {
   return (
+    // ! CHANGE SIMBOL OPERATORS
     (key >= '0' && key <= '9') ||
     key === '+' ||
     key === '-' ||
