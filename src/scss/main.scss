@@ -1,4 +1,4 @@
-@import "normalize.scss";
+@import 'normalize.scss';
 
 :root {
   --red: #dc3545;
@@ -9,6 +9,7 @@
   --gray: rgb(175, 175, 175);
   --dark: rgb(52, 58, 64);
   --dark-black: rgb(34, 40, 44);
+  --dark-blue: rgb(32, 35, 53);
   --gradient-orange: linear-gradient(to bottom, var(--dark), var(--black));
 
   --breakpoint-xs: 0;
@@ -46,8 +47,7 @@ body {
   outline: none;
 }
 
-ul,
-ol {
+ul {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -62,7 +62,7 @@ a {
 
 .header {
   text-align: center;
-  box-shadow: 0 .2em 1em var(--black);
+  box-shadow: 0 0.2em 1em var(--black);
   background-color: var(--dark-black);
 }
 
@@ -78,7 +78,7 @@ a {
   width: 30em;
   height: 30em;
   margin-right: 3em;
-  border-radius: 1em;
+  border-radius: 0.3em;
   box-shadow: 0 0 1em var(--black);
   background-color: var(--dark-black);
 
@@ -94,11 +94,65 @@ a {
 }
 
 .history__list {
-    width: 100%;
-    height: 90.6%;
-    padding: 1em;
-    border-radius: 0 0 1em 1em;
+  width: 100%;
+  height: 90.6%;
+  padding: 1em;
+  border-radius: 0 0 0.3em 0.3em;
+  font-size: 1.6em;
+  overflow-y: auto;
+  background-color: var(--dark);
+
+  &::-webkit-scrollbar {
+    width: 0.4em;
+  }
+
+  &::-webkit-scrollbar-track {
+    border-radius: 0.3em;
     background-color: var(--dark);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 0.3em;
+    background-color: var(--dark-black);
+  }
+
+  li {
+    cursor: pointer;
+    padding: 0.3em;
+    border-radius: 0.3em;
+    transition: 0.2s;
+
+    &:nth-child(even) {
+      background-color: var(--dark-blue);
+    }
+
+    &:nth-child(odd) {
+      background-color: var(--dark-black);
+    }
+
+    &:hover {
+      background-color: var(--gray);
+      color: var(--black);
+    }
+  }
+
+  li + li {
+    margin-top: 0.3em;
+  }
+
+  li.show {
+    animation: show 0.3s both;
+  }
+}
+
+@keyframes show {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
 
 .calculator {
@@ -107,7 +161,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 1em;
+  border-radius: 0.3em;
   box-shadow: 0 0 1em var(--black);
   background-color: var(--dark-black);
 }
@@ -152,7 +206,7 @@ a {
     height: 3.3em;
     border-radius: 0.3em;
     border: none;
-    box-shadow: 0 .1em 0.3em var(--black);
+    box-shadow: 0 0.1em 0.3em var(--black);
     background-color: var(--gray);
     transition: 0.2s;
 
