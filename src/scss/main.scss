@@ -163,6 +163,7 @@ a {
 
     &:active {
       box-shadow: 0 0 0.1em var(--black);
+      transition: 0.01s;
     }
   }
 

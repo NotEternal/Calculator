@@ -30,7 +30,7 @@ const calculator = {
       const arrSimbols = this.input.value.split('');
 
       if (checkCorrectSimbols(arrSimbols)) {
-        this.result = expression(arrSimbols);
+        this.result = returnResultExpression(arrSimbols);
       }
     }
 
@@ -48,9 +48,9 @@ const calculator = {
 
 function checkCorrectSimbols(arrSimb) {
   if (
-    checkErrSimbolsInStartAndEnd(arrSimb) &&
-    checkTwoNoDigitSimbols(arrSimb) &&
-    checkBrackets(arrSimb)
+    checksFirstAndLastChars(arrSimb) &&
+    checksErrCharsBeside(arrSimb) &&
+    checksBrackets(arrSimb)
   ) {
     return true;
   }
@@ -58,15 +58,13 @@ function checkCorrectSimbols(arrSimb) {
   return false;
 }
 
-// ! CHANGE NAME FUNCTION
-function checkErrSimbolsInStartAndEnd(arr) {
-  // ! CHANGE SIMBOL OPERATORS
-  const arrStartSimbErr = ['%', '*', '/', '-', ')', 'x2'];
-  const arrEndSimbErr = ['%', '*', '/', '-', '+', 'cor', '('];
+function checksFirstAndLastChars(arr) {
+  const arrFirstErrChar = ['%', '×', '÷', '-', ')', 'x^2'];
+  const arrLastErrChars = ['%', '×', '÷', '-', '+', '√', '('];
 
   if (
-    arrStartSimbErr.includes(arr[0]) ||
-    arrEndSimbErr.includes(arr[arr.length - 1])
+    arrFirstErrChar.includes(arr[0]) ||
+    arrLastErrChars.includes(arr[arr.length - 1])
   ) {
     return false;
   }
@@ -74,11 +72,8 @@ function checkErrSimbolsInStartAndEnd(arr) {
   return true;
 }
 
-// ! CHANGE NAME FUNCTION
-function checkTwoNoDigitSimbols(arr) {
-  // запрет на идущие подряд операторы
-  // ! CHANGE SIMBOL OPERATORS
-  const arrErrSimbols = ['*', '/', '-', '+', '%', 'cor', 'x2'];
+function checksErrCharsBeside(arr) {
+  const arrErrSimbols = ['×', '÷', '-', '+', '%', '√', 'x^2'];
 
   for (let i = 0; i < arr.length - 2; i += 1) {
     if (arrErrSimbols.includes(arr[i]) && arrErrSimbols.includes(arr[i + 1])) {
@@ -89,15 +84,15 @@ function checkTwoNoDigitSimbols(arr) {
   return true;
 }
 
-function checkBrackets(arr) {
+function checksBrackets(arr) {
   const arrBrackets = [];
 
-  for (let i = 0; i < arr.length; i += 1) {
-    if (arr[i] === '(' || arr[i] === ')') {
-      arrBrackets.push(arr[i]);
+  for (let item of arr) {
+    if (item === '(' || item === ')') {
+      arrBrackets.push(item);
     }
   }
-  // не четное кол-во скобок
+  // not event brackets
   if (arrBrackets.length % 2 != 0) {
     return false;
   }
@@ -107,31 +102,234 @@ function checkBrackets(arr) {
     arrBrackets.length / 2,
     arrBrackets.length
   );
-  // не правильная последовательность скобок
+  // wrong sequence
   if (arrOpenBrakets.includes(')') || arrCloseBrakets.includes('(')) {
     return false;
   }
 
   return true;
 }
-// TODO: save work
-function expression(arr) {
-  // * базовый случай, когда в массиве только один элемент
+
+function returnResultExpression(arr) {
+  // base case, when one element in array
   if (arr.length === 1) {
     return arr[0];
   }
 
-  // * если в массиве есть скобки то вызываем её для скобок
-  // * или вычисляем текущее выражение по приоритету
   if (arr.includes('(')) {
-    // вычислить скобки
+    const resultInBrakets = returnResultExpression(
+      returnSimbBetweenBrakets(arr)
+    );
+    const [
+      indexOpenBracket,
+      indexCloseBracket,
+    ] = returnIndexOpenAndCloseBrakets(arr);
+
+    arr.splice(
+      indexOpenBracket,
+      indexCloseBracket - indexOpenBracket + 1,
+      resultInBrakets
+    );
+
+    return returnsResultExpressionWithoutBrakets(arr);
   } else {
-    // вычислить одну приоритетную операцию
-    // return вычисленная операция + expression(новый массив без операции)
+    return returnsResultExpressionWithoutBrakets(arr);
   }
 }
 
-// EVENTS AND SANDLERS ------------------------------
+function returnSimbBetweenBrakets(arr) {
+  const arrSimbInBrakets = [];
+  let counterBrakets = 0;
+
+  for (let item of arr) {
+    if (item === '(' && counterBrakets === 0) {
+      counterBrakets += 1;
+    } else if (item === '(') {
+      counterBrakets += 1;
+      arrSimbInBrakets.push(item);
+    } else if (item === ')' && counterBrakets != 1) {
+      counterBrakets -= 1;
+      arrSimbInBrakets.push(item);
+    } else if (item === ')') {
+      break;
+    } else if (counterBrakets >= 1) {
+      arrSimbInBrakets.push(item);
+    }
+  }
+
+  return arrSimbInBrakets;
+}
+
+function returnIndexOpenAndCloseBrakets(arr) {
+  let indexOpenBracket = 0;
+  let indexCloseBracket = 0;
+  let counterBrakets = 0;
+
+  for (let i = 0; i < arr.length; i += 1) {
+    if (arr[i] === '(' && counterBrakets === 0) {
+      counterBrakets += 1;
+      indexOpenBracket = i;
+    } else if (arr[i] === '(') {
+      counterBrakets += 1;
+    } else if (arr[i] === ')' && counterBrakets != 1) {
+      counterBrakets -= 1;
+    } else if (arr[i] === ')' && counterBrakets === 1) {
+      indexCloseBracket = i;
+    }
+  }
+
+  return [indexOpenBracket, indexCloseBracket];
+}
+
+function returnsResultExpressionWithoutBrakets(arr) {
+  const endArr = brakeOnNumberAndOperators(arr);
+  const targetOperatorIndex = returnOperatorFromTopPriority(endArr);
+  const arrSimpleExpression = returnSimpleExpression(
+    endArr,
+    targetOperatorIndex
+  );
+  const resultSimpleExpression = returnResultSimpleExpression(
+    arrSimpleExpression
+  );
+
+  // change operator and operands on result
+  if (arrSimpleExpression.length === 2) {
+    switch (arrSimpleExpression[0]) {
+      case '√':
+        endArr.splice(targetOperatorIndex, 2, resultSimpleExpression);
+        break;
+
+      case '^':
+        endArr.splice(targetOperatorIndex - 1, 2, resultSimpleExpression);
+        break;
+    }
+  } else {
+    endArr.splice(targetOperatorIndex - 1, 3, resultSimpleExpression);
+  }
+
+  if (endArr.length > 1) {
+    return returnsResultExpressionWithoutBrakets(endArr);
+  } else {
+    return endArr;
+  }
+}
+
+function brakeOnNumberAndOperators(arr) {
+  let numStr = '';
+  const newArr = [];
+  const operators = {
+    // operators: priority
+    '-': 1,
+    '+': 1,
+    '÷': 2,
+    '×': 2,
+    '√': 3,
+    'x^2': 3,
+  };
+
+  for (let item of arr) {
+    if (
+      (Object.is(Number(item), NaN) && item === '.') ||
+      !Object.is(Number(item), NaN)
+    ) {
+      numStr += item;
+    } else {
+      item += '#' + operators[item];
+      newArr.push(numStr, item);
+      numStr = '';
+    }
+  }
+
+  if (numStr != '') {
+    newArr.push(numStr);
+  }
+
+  return newArr;
+}
+
+function returnOperatorFromTopPriority(arr) {
+  let indexOperator = -1;
+  let priority = 0;
+
+  for (let i = 0; i < arr.length; i += 1) {
+    if (Object.is(Number(arr[i]), NaN)) {
+      if (indexOperator === -1) {
+        indexOperator = i;
+        const operator = arr[i];
+        priority = Number(operator[operator.length - 1]);
+      } else {
+        const newOperator = arr[i];
+        const newPriority = Number(newOperator[newOperator.length - 1]);
+
+        if (newPriority > priority) {
+          indexOperator = i;
+          priority = newPriority;
+        }
+      }
+    }
+  }
+
+  return indexOperator;
+}
+
+function returnSimpleExpression(arr, operatorIndex) {
+  console.log(arr, operatorIndex);
+  const operator = arr[operatorIndex][0];
+  let resultArr = [];
+
+  switch (arr[operatorIndex][0]) {
+    case '√':
+      resultArr = [operator, arr[operatorIndex + 1]];
+      break;
+
+    case '^':
+      resultArr = [operator, arr[operatorIndex - 1]];
+      break;
+
+    default:
+      resultArr = [arr[operatorIndex - 1], operator, arr[operatorIndex + 1]];
+  }
+
+  return resultArr;
+}
+
+function returnResultSimpleExpression(arrExpression) {
+  let result;
+
+  if (arrExpression.length === 2) {
+    switch (arrExpression[0]) {
+      case '√':
+        result = Math.sqrt(+arrExpression[1]);
+        break;
+
+      case '^':
+        result = (+arrExpression[1]) ** 2;
+        break;
+    }
+  } else {
+    switch (arrExpression[1]) {
+      case '-':
+        result = +arrExpression[0] - +arrExpression[2];
+        break;
+
+      case '+':
+        result = +arrExpression[0] + +arrExpression[2];
+        break;
+
+      case '×':
+        result = +arrExpression[0] * +arrExpression[2];
+        break;
+
+      case '÷':
+        result = +arrExpression[0] / +arrExpression[2];
+        break;
+    }
+  }
+
+  return result;
+}
+
+// EVENTS AND SANDLERS ---------------------------------------------------------
 
 calculator.calc.addEventListener('click', (event) => {
   if (event.target.tagName === 'BUTTON') {
@@ -189,12 +387,11 @@ function viewResult() {
 
 function checkCorrectCode(key) {
   return (
-    // ! CHANGE SIMBOL OPERATORS
     (key >= '0' && key <= '9') ||
     key === '+' ||
     key === '-' ||
-    key === '*' ||
-    key === '/' ||
+    key === '×' ||
+    key === '÷' ||
     key === '%' ||
     key === '(' ||
     key === ')' ||
