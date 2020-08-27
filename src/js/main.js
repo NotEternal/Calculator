@@ -1,5 +1,6 @@
 'use strict';
 // TODO: event.clipboardData -> разобратся с событием для копирования при нажатии на историю
+// TODO: исправить проблему с десятичной точкой, корнем, процентом
 const calculator = {
   calc: document.querySelector('.calc'),
   input: document.querySelector('.calc__input'),
@@ -62,7 +63,7 @@ function checkCorrectSimbols(arrSimb) {
 }
 
 function checksFirstAndLastChars(arr) {
-  const arrFirstErrChars = ['%', '×', '÷', '-', ')', '^'];
+  const arrFirstErrChars = ['%', '×', '÷', '-', ')', '²'];
   const arrLastErrChars = ['×', '÷', '-', '+', '√', '('];
 
   if (
@@ -76,7 +77,7 @@ function checksFirstAndLastChars(arr) {
 }
 
 function checksErrCharsBeside(arr) {
-  const arrErrSimbols = ['×', '÷', '-', '+', '%', '√', '^'];
+  const arrErrSimbols = ['×', '÷', '-', '+', '%', '√', '²'];
 
   for (let i = 0; i < arr.length - 2; i += 1) {
     if (arrErrSimbols.includes(arr[i]) && arrErrSimbols.includes(arr[i + 1])) {
@@ -110,11 +111,11 @@ function checksUnicumCases(charOne, charTwo) {
 }
 
 function checksErrorCases(arr) {
-  for (let i = 0; i < arr.length; i += 1) {
+  for (let i = 0; i < arr.length - 1; i += 1) {
     if (
       (arr[i] === '√' && Number(arr[i - 1])) ||
       (arr[i] === '%' && Number(arr[i + 1])) ||
-      (arr[i] === '^' && Number(arr[i + 1]))
+      (arr[i] === '²' && Number(arr[i + 1]))
     ) {
       return true;
     }
@@ -245,7 +246,7 @@ function returnsResultExpressionWithoutBrakets(arr) {
         break;
 
       case '%':
-      case '^':
+      case '²':
         endArr.splice(targetOperatorIndex - 1, 2, resultSimpleExpression);
         break;
     }
@@ -270,7 +271,7 @@ function brakeOnNumberAndOperators(arr) {
     '÷': 2,
     '×': 2,
     '√': 3,
-    '^': 3,
+    '²': 3,
     '%': 3,
   };
 
@@ -329,7 +330,7 @@ function returnSimpleExpression(arr, operatorIndex) {
       break;
 
     case '%':
-    case '^':
+    case '²':
       resultArr = [operator, arr[operatorIndex - 1]];
       break;
 
@@ -349,7 +350,7 @@ function returnResultSimpleExpression(arrExpression) {
         result = Math.sqrt(+arrExpression[1]);
         break;
 
-      case '^':
+      case '²':
         result = (+arrExpression[1]) ** 2;
         break;
 
@@ -402,7 +403,7 @@ calculator.calc.addEventListener('click', (event) => {
         break;
 
       case 'square-root':
-        calculator.input.value += '^';
+        calculator.input.value += '²';
         break;
 
       case 'btn-result':
@@ -442,7 +443,7 @@ function viewResult() {
     calculator.input.value = result;
     document.querySelector('.history__list').append(li);
   } else {
-    calculator.showError('No correct expression');
+    calculator.showError('No correct result');
   }
 }
 
@@ -454,9 +455,19 @@ function checkCorrectCode(key) {
     key === '×' ||
     key === '÷' ||
     key === '%' ||
-    key === '^' ||
+    key === '²' ||
     key === '(' ||
     key === ')' ||
     key === '.'
   );
 }
+
+document.querySelector('.history__btn-view').onclick = () => {
+  const history = document.querySelector('.history');
+
+  if (history.classList.contains('show')) {
+    history.classList.remove('show');
+  } else {
+    history.classList.add('show');
+  }
+};
