@@ -1,5 +1,5 @@
 'use strict';
-
+// TODO: event.clipboardData -> разобратся с событием для копирования при нажатии на историю
 const calculator = {
   calc: document.querySelector('.calc'),
   input: document.querySelector('.calc__input'),
@@ -26,7 +26,9 @@ const calculator = {
   getResult() {
     this.result = 0;
 
-    if (this.input.value != '') {
+    if (this.input.value != '' && Number(this.input.value)) {
+      this.result = Number(this.input.value);
+    } else if (this.input.value != '') {
       const arrSimbols = this.input.value.split('');
 
       if (checkCorrectSimbols(arrSimbols)) {
@@ -37,7 +39,8 @@ const calculator = {
     return this.result;
   },
 
-  showError() {
+  showError(textErr) {
+    this.error.innerHTML = textErr;
     this.error.removeAttribute('hidden');
   },
 
@@ -59,11 +62,11 @@ function checkCorrectSimbols(arrSimb) {
 }
 
 function checksFirstAndLastChars(arr) {
-  const arrFirstErrChar = ['%', '×', '÷', '-', ')', 'x^2'];
-  const arrLastErrChars = ['%', '×', '÷', '-', '+', '√', '('];
+  const arrFirstErrChars = ['%', '×', '÷', '-', ')', '^'];
+  const arrLastErrChars = ['×', '÷', '-', '+', '√', '('];
 
   if (
-    arrFirstErrChar.includes(arr[0]) ||
+    arrFirstErrChars.includes(arr[0]) ||
     arrLastErrChars.includes(arr[arr.length - 1])
   ) {
     return false;
@@ -73,15 +76,51 @@ function checksFirstAndLastChars(arr) {
 }
 
 function checksErrCharsBeside(arr) {
-  const arrErrSimbols = ['×', '÷', '-', '+', '%', '√', 'x^2'];
+  const arrErrSimbols = ['×', '÷', '-', '+', '%', '√', '^'];
 
   for (let i = 0; i < arr.length - 2; i += 1) {
     if (arrErrSimbols.includes(arr[i]) && arrErrSimbols.includes(arr[i + 1])) {
+      if (checksUnicumCases(arr[i], arr[i + 1])) {
+        continue;
+      }
+
       return false;
     }
   }
 
+  if (checksErrorCases(arr)) {
+    return false;
+  }
+
   return true;
+}
+
+function checksUnicumCases(charOne, charTwo) {
+  if (
+    (charOne === '×' ||
+      charOne === '÷' ||
+      charOne === '-' ||
+      charOne === '+') &&
+    charTwo === '√'
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+function checksErrorCases(arr) {
+  for (let i = 0; i < arr.length; i += 1) {
+    if (
+      (arr[i] === '√' && Number(arr[i - 1])) ||
+      (arr[i] === '%' && Number(arr[i + 1])) ||
+      (arr[i] === '^' && Number(arr[i + 1]))
+    ) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function checksBrackets(arr) {
@@ -111,7 +150,7 @@ function checksBrackets(arr) {
 }
 
 function returnResultExpression(arr) {
-  // base case, when one element in array
+  // base case
   if (arr.length === 1) {
     return arr[0];
   }
@@ -188,9 +227,15 @@ function returnsResultExpressionWithoutBrakets(arr) {
     endArr,
     targetOperatorIndex
   );
+
   const resultSimpleExpression = returnResultSimpleExpression(
     arrSimpleExpression
   );
+
+  if (!resultSimpleExpression) {
+    calculator.showError("Value is'n max safe integer");
+    return false;
+  }
 
   // change operator and operands on result
   if (arrSimpleExpression.length === 2) {
@@ -199,6 +244,7 @@ function returnsResultExpressionWithoutBrakets(arr) {
         endArr.splice(targetOperatorIndex, 2, resultSimpleExpression);
         break;
 
+      case '%':
       case '^':
         endArr.splice(targetOperatorIndex - 1, 2, resultSimpleExpression);
         break;
@@ -224,7 +270,8 @@ function brakeOnNumberAndOperators(arr) {
     '÷': 2,
     '×': 2,
     '√': 3,
-    'x^2': 3,
+    '^': 3,
+    '%': 3,
   };
 
   for (let item of arr) {
@@ -235,7 +282,7 @@ function brakeOnNumberAndOperators(arr) {
       numStr += item;
     } else {
       item += '#' + operators[item];
-      newArr.push(numStr, item);
+      numStr === '' ? newArr.push(item) : newArr.push(numStr, item);
       numStr = '';
     }
   }
@@ -273,7 +320,6 @@ function returnOperatorFromTopPriority(arr) {
 }
 
 function returnSimpleExpression(arr, operatorIndex) {
-  console.log(arr, operatorIndex);
   const operator = arr[operatorIndex][0];
   let resultArr = [];
 
@@ -282,6 +328,7 @@ function returnSimpleExpression(arr, operatorIndex) {
       resultArr = [operator, arr[operatorIndex + 1]];
       break;
 
+    case '%':
     case '^':
       resultArr = [operator, arr[operatorIndex - 1]];
       break;
@@ -305,6 +352,10 @@ function returnResultSimpleExpression(arrExpression) {
       case '^':
         result = (+arrExpression[1]) ** 2;
         break;
+
+      case '%':
+        result = +arrExpression[1] / 100;
+        break;
     }
   } else {
     switch (arrExpression[1]) {
@@ -326,7 +377,11 @@ function returnResultSimpleExpression(arrExpression) {
     }
   }
 
-  return result;
+  if (Number.isSafeInteger(result)) {
+    return result;
+  }
+
+  return false;
 }
 
 // EVENTS AND SANDLERS ---------------------------------------------------------
@@ -344,6 +399,10 @@ calculator.calc.addEventListener('click', (event) => {
 
       case 'btn-clear':
         calculator.clear();
+        break;
+
+      case 'square-root':
+        calculator.input.value += '^';
         break;
 
       case 'btn-result':
@@ -372,16 +431,18 @@ calculator.input.addEventListener('keydown', (event) => {
 });
 
 function viewResult() {
+  const userExpression = calculator.input.value;
   const result = calculator.getResult();
 
   if (result) {
     const li = document.createElement('li');
-    li.innerHTML = result;
+    li.className = 'show';
+    li.innerHTML = `${userExpression} = ${result}`;
 
     calculator.input.value = result;
     document.querySelector('.history__list').append(li);
   } else {
-    calculator.showError();
+    calculator.showError('No correct expression');
   }
 }
 
@@ -393,6 +454,7 @@ function checkCorrectCode(key) {
     key === '×' ||
     key === '÷' ||
     key === '%' ||
+    key === '^' ||
     key === '(' ||
     key === ')' ||
     key === '.'
