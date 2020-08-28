@@ -71,16 +71,23 @@ function checksFirstAndLastChars(str) {
 }
 
 function checksErrCharsBeside(str) {
-  const regTrueCase = /(×|÷|\-|\+)(√|\()|(²|%|\))(×|÷|\-|\+|²)/;
+  // TODO:: разобратся со случаями:
+  // цифры не играют роли
+  // !       'x%+3²'
+  // !       '3%+√4'
+  // !       '√4+3%'
+  // !       'умножение на ноль'
+  // !       '(2²)-(8+1)'
+  // ?       '√4-3²' -> '1' (правильно -> '-7')
+
+  // ? возможно разнести ошибочные ситуации по разным переменным для упрощения
   const regFalseCase = /\d√|(²|%)\d|\d\(|\)\d/;
 
   console.log(`
-      true case: ${regTrueCase.test(str)}
       error case: ${regFalseCase.test(str)}
-    `);
+  `);
 
-  // TODO: разобратся с условием. Выдает не верный результат
-  if (!regTrueCase.test(str) || regFalseCase.test(str)) {
+  if (regFalseCase.test(str)) {
     return false;
   }
 
@@ -424,6 +431,10 @@ function checkCorrectCode(key) {
     key === ')' ||
     key === '.'
   );
+}
+
+document.querySelector('.history__btn-clear').onclick = () => {
+  document.querySelector('.history__list').innerHTML = '';
 }
 
 document.querySelector('.history__btn-view').onclick = () => {

@@ -79,6 +79,7 @@ a {
 }
 
 .history {
+  position: relative;
   width: 30em;
   height: 30em;
   margin-right: 3em;
@@ -89,11 +90,33 @@ a {
   h3 {
     margin: 0.4em 0;
     text-align: center;
+    letter-spacing: 0.1em;
   }
 
   hr {
     margin: 0;
     border-color: var(--dark);
+  }
+}
+
+.history__btn-clear {
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: inline-block;
+  width: 100%;
+  height: 2em;
+  border: none;
+  border-radius: 0.3em 0.3em 0 0;
+  font-size: 1.3em;
+  letter-spacing: 0.1em;
+  background-color: var(--red);
+  opacity: 0;
+  transition: 0.2s;
+
+  &:hover {
+    opacity: 1;
   }
 }
 
