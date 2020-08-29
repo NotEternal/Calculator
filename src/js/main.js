@@ -3,7 +3,8 @@
 const calculator = {
   calc: document.querySelector('.calc'),
   input: document.querySelector('.calc__input'),
-  result: 0,
+  cache: new Map(),
+  result: false,
 
   delete() {
     if (this.input.value != '') {
@@ -23,15 +24,25 @@ const calculator = {
   },
 
   getResult() {
-    this.result = 0;
+    this.result = false;
 
-    if (this.input.value != '' && +this.input.value) {
+    if (+this.input.value) {
       this.result = +this.input.value;
     } else if (this.input.value != '') {
-      const arrSimbols = this.input.value.split('');
-
       if (checkCorrectSimbols(this.input.value)) {
-        this.result = returnResultExpression(arrSimbols);
+        // TODO: слишком большая сложность и вложенность. Упростить
+        // ? как вынести в отдельную функцию без зависимостей
+        if (this.cache.has(this.input.value)) {
+          console.log(this.cache);
+          this.result = this.cache.get(this.input.value);
+        } else {
+          const result = returnResultExpression(this.input.value.split(''))[0];
+
+          this.cache.set(this.input.value, result);
+          this.result = result;
+        }
+
+        this.result = returnResultExpression(this.input.value.split(''))[0];
       }
     }
 
@@ -73,19 +84,14 @@ function checksFirstAndLastChars(str) {
 function checksErrCharsBeside(str) {
   // TODO:: разобратся со случаями:
   // цифры не играют роли
-  // !       'x%+3²'
-  // !       '3%+√4'
-  // !       '√4+3%'
-  // !       'умножение на ноль'
+  // !       '2%+√4'
   // !       '(2²)-(8+1)'
-  // ?       '√4-3²' -> '1' (правильно -> '-7')
+  // ?       '√4+2% = 0.04'(true__2.02)
+  // ?       '2%+2² = 4.0804'(true__4.02)
+  // ?       '√4-3² = 1'(true__-7)
 
   // ? возможно разнести ошибочные ситуации по разным переменным для упрощения
   const regFalseCase = /\d√|(²|%)\d|\d\(|\)\d/;
-
-  console.log(`
-      error case: ${regFalseCase.test(str)}
-  `);
 
   if (regFalseCase.test(str)) {
     return false;
@@ -197,11 +203,6 @@ function returnsResultExpressionWithoutBrakets(arr) {
   const resultSimpleExpression = returnResultSimpleExpression(
     arrSimpleExpression
   );
-
-  if (!resultSimpleExpression) {
-    calculator.showError();
-    return false;
-  }
 
   // change operator and operands on result
   if (arrSimpleExpression.length === 2) {
@@ -346,7 +347,6 @@ function returnResultSimpleExpression(arrExpression) {
   }
 
   // TODO: разобратся с потерей точности
-
   if (result > -Number.MAX_SAFE_INTEGER && result < Number.MAX_SAFE_INTEGER) {
     return result;
   }
@@ -354,7 +354,7 @@ function returnResultSimpleExpression(arrExpression) {
   return false;
 }
 
-// EVENTS AND SANDLERS ---------------------------------------------------------
+// * EVENTS AND SANDLERS _______________________________________________________
 
 calculator.calc.addEventListener('click', (event) => {
   if (event.target.tagName === 'BUTTON') {
@@ -405,14 +405,14 @@ function viewResult() {
   const userExpression = calculator.input.value;
   const result = calculator.getResult();
 
-  if (result) {
+  if (result || result === 0) {
     const li = document.createElement('li');
 
     li.className = 'show';
     li.innerHTML = `${userExpression} = ${result}`;
+    document.querySelector('.history__list').append(li);
 
     calculator.input.value = result;
-    document.querySelector('.history__list').append(li);
   } else {
     calculator.showError();
   }
@@ -435,7 +435,7 @@ function checkCorrectCode(key) {
 
 document.querySelector('.history__btn-clear').onclick = () => {
   document.querySelector('.history__list').innerHTML = '';
-}
+};
 
 document.querySelector('.history__btn-view').onclick = () => {
   document.querySelector('.history').classList.toggle('show');
