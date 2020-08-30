@@ -24,26 +24,14 @@ const calculator = {
   },
 
   getResult() {
+    const expression = this.input.value;
+
     this.result = false;
 
-    if (+this.input.value) {
-      this.result = +this.input.value;
-    } else if (this.input.value != '') {
-      if (checkCorrectSimbols(this.input.value)) {
-        // TODO: слишком большая сложность и вложенность. Упростить
-        // ? как вынести в отдельную функцию без зависимостей
-        if (this.cache.has(this.input.value)) {
-          console.log(this.cache);
-          this.result = this.cache.get(this.input.value);
-        } else {
-          const result = returnResultExpression(this.input.value.split(''))[0];
-
-          this.cache.set(this.input.value, result);
-          this.result = result;
-        }
-
-        this.result = returnResultExpression(this.input.value.split(''))[0];
-      }
+    if (+expression) {
+      this.result = +expression;
+    } else if (expression != '') {
+      this.result = checksExpressionAndReturnResult(expression, this.cache);
     }
 
     return this.result;
@@ -57,6 +45,19 @@ const calculator = {
     this.input.classList.remove('error');
   },
 };
+
+function checksExpressionAndReturnResult(exp, cache) {
+  if (checkCorrectSimbols(exp)) {
+    if (cache.has(exp)) {
+      return cache.get(exp);
+    } else {
+      const result = returnResultExpression(exp.split(''))[0];
+
+      cache.set(exp, result);
+      return result;
+    }
+  }
+}
 
 function checkCorrectSimbols(strInput) {
   if (
@@ -82,16 +83,11 @@ function checksFirstAndLastChars(str) {
 }
 
 function checksErrCharsBeside(str) {
-  // TODO:: разобратся со случаями:
+  // TODO:: разобраться со случаями:
   // цифры не играют роли
-  // !       '2%+√4'
   // !       '(2²)-(8+1)'
-  // ?       '√4+2% = 0.04'(true__2.02)
-  // ?       '2%+2² = 4.0804'(true__4.02)
-  // ?       '√4-3² = 1'(true__-7)
 
-  // ? возможно разнести ошибочные ситуации по разным переменным для упрощения
-  const regFalseCase = /\d√|(²|%)\d|\d\(|\)\d/;
+  const regFalseCase = /\d√|(²|%)(\d|√)|\d\(|\)\d/;
 
   if (regFalseCase.test(str)) {
     return false;
@@ -123,7 +119,6 @@ function checksBrackets(str) {
 }
 
 function returnResultExpression(arr) {
-  // base case
   if (arr.length === 1) {
     return arr[0];
   }
@@ -204,6 +199,14 @@ function returnsResultExpressionWithoutBrakets(arr) {
     arrSimpleExpression
   );
 
+  // * save debag _________________________________
+  // console.log(`
+  //   end array: ${endArr}
+  //   target operator index: ${targetOperatorIndex}
+  //   array simple expression: ${arrSimpleExpression}
+  // `);s
+  // * save debag _________________________________
+
   // change operator and operands on result
   if (arrSimpleExpression.length === 2) {
     switch (arrSimpleExpression[0]) {
@@ -241,11 +244,11 @@ function brakeOnNumberAndOperators(arr) {
     '%': 3,
   };
 
+  // TODO: разобраться с добавлением лишней решетки и приоритета
+  // * это происходит при каждом рекурсивном вызове для решения выражения
+  // ? сделать проверку содержит ли строка с оператором решётку
   for (let item of arr) {
-    if (
-      (Object.is(Number(item), NaN) && item === '.') ||
-      !Object.is(Number(item), NaN)
-    ) {
+    if ((Object.is(+item, NaN) && item === '.') || !Object.is(+item, NaN)) {
       numStr += item;
     } else {
       item += '#' + operators[item];
@@ -266,14 +269,14 @@ function returnOperatorFromTopPriority(arr) {
   let priority = 0;
 
   for (let i = 0; i < arr.length; i += 1) {
-    if (Object.is(Number(arr[i]), NaN)) {
+    if (Object.is(+arr[i], NaN)) {
       if (indexOperator === -1) {
         indexOperator = i;
         const operator = arr[i];
-        priority = Number(operator[operator.length - 1]);
+        priority = +operator[2];
       } else {
         const newOperator = arr[i];
-        const newPriority = Number(newOperator[newOperator.length - 1]);
+        const newPriority = +newOperator[2];
 
         if (newPriority > priority) {
           indexOperator = i;
@@ -347,6 +350,8 @@ function returnResultSimpleExpression(arrExpression) {
   }
 
   // TODO: разобратся с потерей точности
+  // ? как правильно округлять
+
   if (result > -Number.MAX_SAFE_INTEGER && result < Number.MAX_SAFE_INTEGER) {
     return result;
   }
@@ -354,7 +359,7 @@ function returnResultSimpleExpression(arrExpression) {
   return false;
 }
 
-// * EVENTS AND SANDLERS _______________________________________________________
+// EVENTS AND SANDLERS _________________________________________________________
 
 calculator.calc.addEventListener('click', (event) => {
   if (event.target.tagName === 'BUTTON') {
