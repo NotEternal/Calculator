@@ -1,5 +1,5 @@
 'use strict';
-// TODO: event.clipboardData -> разобратся с событием для копирования при нажатии на историю
+// TODO: checks telegram -> how copy text in buffer on click element
 const calculator = {
   calc: document.querySelector('.calc'),
   input: document.querySelector('.calc__input'),
@@ -24,7 +24,7 @@ const calculator = {
   },
 
   getResult() {
-    const expression = this.input.value;
+    const expression = this.input.value.trim();
 
     this.result = false;
 
@@ -62,7 +62,7 @@ function checksExpressionAndReturnResult(exp, cache) {
 function checkCorrectSimbols(strInput) {
   if (
     checksFirstAndLastChars(strInput) &&
-    checksErrCharsBeside(strInput) &&
+    checksErrCharCases(strInput) &&
     checksBrackets(strInput)
   ) {
     return true;
@@ -82,11 +82,7 @@ function checksFirstAndLastChars(str) {
   return true;
 }
 
-function checksErrCharsBeside(str) {
-  // TODO:: разобраться со случаями:
-  // цифры не играют роли
-  // !       '(2²)-(8+1)'
-
+function checksErrCharCases(str) {
   const regFalseCase = /\d√|(²|%)(\d|√)|\d\(|\)\d/;
 
   if (regFalseCase.test(str)) {
@@ -103,16 +99,6 @@ function checksBrackets(str) {
     if (arrBrackets.length % 2 != 0) {
       return false;
     }
-
-    const arrOpenBrakets = arrBrackets.slice(0, arrBrackets.length / 2);
-    const arrCloseBrakets = arrBrackets.slice(
-      arrBrackets.length / 2,
-      arrBrackets.length
-    );
-    // wrong sequence
-    if (arrOpenBrakets.includes(')') || arrCloseBrakets.includes('(')) {
-      return false;
-    }
   }
 
   return true;
@@ -124,63 +110,50 @@ function returnResultExpression(arr) {
   }
 
   if (arr.includes('(')) {
-    const resultInBrakets = returnResultExpression(
-      returnSimbBetweenBrakets(arr)
-    );
-    const [
-      indexOpenBracket,
-      indexCloseBracket,
-    ] = returnIndexOpenAndCloseBrakets(arr);
-
-    arr.splice(
-      indexOpenBracket,
-      indexCloseBracket - indexOpenBracket + 1,
-      resultInBrakets
-    );
-
-    return returnsResultExpressionWithoutBrakets(arr);
+    changesBracketsExpressionOnResult(arr);
+    return returnsResultExpressionWithoutBrackets(arr);
   } else {
-    return returnsResultExpressionWithoutBrakets(arr);
+    return returnsResultExpressionWithoutBrackets(arr);
   }
 }
 
-function returnSimbBetweenBrakets(arr) {
-  const arrSimbInBrakets = [];
-  let counterBrakets = 0;
+function returnSimbBetweenBrackets(arr) {
+  const arrSimbInBrackets = [];
+  let counterBrackets = 0;
 
   for (let item of arr) {
-    if (item === '(' && counterBrakets === 0) {
-      counterBrakets += 1;
+    if (item === '(' && counterBrackets === 0) {
+      counterBrackets += 1;
     } else if (item === '(') {
-      counterBrakets += 1;
-      arrSimbInBrakets.push(item);
-    } else if (item === ')' && counterBrakets != 1) {
-      counterBrakets -= 1;
-      arrSimbInBrakets.push(item);
+      counterBrackets += 1;
+      arrSimbInBrackets.push(item);
+    } else if (item === ')' && counterBrackets != 1) {
+      counterBrackets -= 1;
+      arrSimbInBrackets.push(item);
     } else if (item === ')') {
       break;
-    } else if (counterBrakets >= 1) {
-      arrSimbInBrakets.push(item);
+    } else if (counterBrackets >= 1) {
+      arrSimbInBrackets.push(item);
     }
   }
 
-  return arrSimbInBrakets;
+  return arrSimbInBrackets;
 }
 
-function returnIndexOpenAndCloseBrakets(arr) {
+function returnIndexOpenAndCloseBrackets(arr) {
   let indexOpenBracket = 0;
   let indexCloseBracket = 0;
-  let counterBrakets = 0;
+  let counterBrackets = 0;
 
   for (let i = 0; i < arr.length; i += 1) {
-    if (arr[i] === '(' && counterBrakets === 0) {
-      counterBrakets += 1;
+    if (arr[i] === '(' && counterBrackets === 0) {
+      counterBrackets += 1;
       indexOpenBracket = i;
     } else if (arr[i] === '(') {
-      counterBrakets += 1;
-    } else if (arr[i] === ')' && counterBrakets != 1) {
-      counterBrakets -= 1;
-    } else if (arr[i] === ')' && counterBrakets === 1) {
+      counterBrackets += 1;
+    } else if (arr[i] === ')' && counterBrackets != 1) {
+      counterBrackets -= 1;
+    } else if (arr[i] === ')' && counterBrackets === 1) {
       indexCloseBracket = i;
     }
   }
@@ -188,25 +161,36 @@ function returnIndexOpenAndCloseBrakets(arr) {
   return [indexOpenBracket, indexCloseBracket];
 }
 
-function returnsResultExpressionWithoutBrakets(arr) {
+function changesBracketsExpressionOnResult(arr) {
+  const resultInBrackets = returnResultExpression(
+    returnSimbBetweenBrackets(arr)
+  );
+  const [
+    indexOpenBracket,
+    indexCloseBracket,
+  ] = returnIndexOpenAndCloseBrackets(arr);
+
+  arr.splice(
+    indexOpenBracket,
+    indexCloseBracket - indexOpenBracket + 1,
+    resultInBrackets
+  );
+
+  if (arr.includes('(')) {
+    changesBracketsExpressionOnResult(arr);
+  }
+}
+
+function returnsResultExpressionWithoutBrackets(arr) {
   const endArr = brakeOnNumberAndOperators(arr);
   const targetOperatorIndex = returnOperatorFromTopPriority(endArr);
   const arrSimpleExpression =
-    targetOperatorIndex === -1
-      ? endArr
-      : returnSimpleExpression(endArr, targetOperatorIndex);
+    targetOperatorIndex === -1 ?
+    endArr :
+    returnSimpleExpression(endArr, targetOperatorIndex);
   const resultSimpleExpression = returnResultSimpleExpression(
     arrSimpleExpression
   );
-
-  // * save debag _________________________________
-  // console.log(`
-  //   end array: ${endArr}
-  //   target operator index: ${targetOperatorIndex}
-  //   array simple expression: ${arrSimpleExpression}
-  // `);s
-  // * save debag _________________________________
-
   // change operator and operands on result
   if (arrSimpleExpression.length === 2) {
     switch (arrSimpleExpression[0]) {
@@ -223,11 +207,7 @@ function returnsResultExpressionWithoutBrakets(arr) {
     endArr.splice(targetOperatorIndex - 1, 3, resultSimpleExpression);
   }
 
-  if (endArr.length > 1) {
-    return returnsResultExpressionWithoutBrakets(endArr);
-  } else {
-    return endArr;
-  }
+  return endArr.length > 1 ? returnsResultExpressionWithoutBrackets(endArr) : endArr;
 }
 
 function brakeOnNumberAndOperators(arr) {
@@ -244,14 +224,13 @@ function brakeOnNumberAndOperators(arr) {
     '%': 3,
   };
 
-  // TODO: разобраться с добавлением лишней решетки и приоритета
-  // * это происходит при каждом рекурсивном вызове для решения выражения
-  // ? сделать проверку содержит ли строка с оператором решётку
   for (let item of arr) {
     if ((Object.is(+item, NaN) && item === '.') || !Object.is(+item, NaN)) {
       numStr += item;
     } else {
-      item += '#' + operators[item];
+      if (item && item != '(' && item != ')') {
+        item.indexOf('#') === -1 ? item += '#' + operators[item] : false;
+      }
       numStr === '' ? newArr.push(item) : newArr.push(numStr, item);
       numStr = '';
     }
@@ -350,7 +329,6 @@ function returnResultSimpleExpression(arrExpression) {
   }
 
   // TODO: разобратся с потерей точности
-  // ? как правильно округлять
 
   if (result > -Number.MAX_SAFE_INTEGER && result < Number.MAX_SAFE_INTEGER) {
     return result;
