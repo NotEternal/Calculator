@@ -1,5 +1,5 @@
 'use strict';
-// TODO: checks telegram -> how copy text in buffer on click element
+
 const calculator = {
   calc: document.querySelector('.calc'),
   input: document.querySelector('.calc__input'),
@@ -327,8 +327,6 @@ function returnResultSimpleExpression(arrExpression) {
         break;
     }
   }
-
-  // TODO: разобратся с потерей точности
 
   if (result > -Number.MAX_SAFE_INTEGER && result < Number.MAX_SAFE_INTEGER) {
     return result;
